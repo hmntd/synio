@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Settings;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Settings\IntegrationUpdateRequest;
+use App\Models\User;
 use App\Services\RedmineService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -106,6 +107,10 @@ class IntegrationController extends Controller
 
     public function clearRedmineKey(Request $request): JsonResponse
     {
+        $request->user()->update([
+            'redmine_api_key' => null
+        ]);
+
         return response()->json(Response::HTTP_OK);
     }
 }

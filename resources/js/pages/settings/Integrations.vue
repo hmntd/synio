@@ -49,6 +49,7 @@ const form = useForm({
 // UI state
 const showRedmineKey = ref(false);
 const isTestingRedmine = ref(false);
+const isClearingRedmineKey = ref(false);
 
 const submit = () => {
     form.patch(props.routes.update, {
@@ -63,8 +64,42 @@ const submit = () => {
     });
 };
 
-const clearRedmineKey = () => {
-    console.log('clear redmine key'); // route to clear_redmine_key
+const clearRedmineKey = async () => {
+    const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+    isClearingRedmineKey.value = true;
+    const loadingToast = toast.loading('Clearing the API key...');
+
+    try {
+        const response = await fetch(props.routes.clear_redmine_key, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': token as string,
+            },
+        });
+
+        const data = await response.json();
+
+        toast.dismiss(loadingToast);
+
+        if (response.ok && data.success) {
+            toast.success('The API key cleared succesfull', {
+                description: 'Your Redmine API key is cleared, you can enter the new.',
+            });
+        } else {
+            toast.error('Error', {
+                description: data.message || 'Please retry later',
+            });
+        }
+    } catch (error) {
+        toast.dismiss(loadingToast);
+        toast.error('Error', {
+            description: 'An unexpected error occurred.',
+        });
+    } finally {
+        isClearingRedmineKey.value = false;
+    }
 };
 
 const testRedmineConnection = async () => {
@@ -74,7 +109,9 @@ const testRedmineConnection = async () => {
     }
 
     isTestingRedmine.value = true;
+    form.errors.redmine_api_key = '';
     const loadingToast = toast.loading('Testing connection...');
+    const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
 
     try {
         const response = await fetch(props.routes.test_redmine, {
@@ -82,6 +119,7 @@ const testRedmineConnection = async () => {
             headers: {
                 'Content-Type': 'application/json',
                 'Accept': 'application/json',
+                'X-CSRF-TOKEN': token as string,
             },
             body: JSON.stringify({
                 redmine_api_key: form.redmine_api_key,
@@ -98,11 +136,13 @@ const testRedmineConnection = async () => {
                 description: 'Your Redmine API key is valid.',
             });
         } else {
+            form.errors.redmine_api_key = 'Invalid API key';
             toast.error('Connection failed', {
                 description: data.message || 'Please check your credentials.',
             });
         }
     } catch (error) {
+        console.log('errror', error);
         toast.dismiss(loadingToast);
         toast.error('Connection failed', {
             description: 'An unexpected error occurred.',
@@ -150,15 +190,16 @@ const testRedmineConnection = async () => {
                                 <Label for="redmine_api_key">API Key</Label>
 
                                 <template v-if="page.props.auth.user.redmine_api_provided">
-                                    <div
-                                        class="flex items-center justify-between rounded-md text-sm">
+                                    <div class="flex items-center justify-between rounded-md text-sm">
                                         <div class="flex items-center gap-2">
                                             <CheckCircle class="h-4 w-4 text-green-500" />
                                             <span>Redmine API key is connected</span>
                                         </div>
 
                                         <div class="flex gap-1">
-                                            <Button variant="outline" size="sm" @click="clearRedmineKey">
+                                            <Button variant="outline" size="sm" :disabled="isClearingRedmineKey"
+                                                @click="clearRedmineKey">
+                                                <Loader2 v-if="isClearingRedmineKey" class="h-4 w-4 animate-spin" />
                                                 <RefreshCcw class="h-4 w-4 mr-1" /> Clear
                                             </Button>
                                         </div>
@@ -188,11 +229,6 @@ const testRedmineConnection = async () => {
                                             </Button>
                                         </div>
                                     </div>
-
-                                    <p class="text-xs text-muted-foreground">
-                                        Find your API key in Redmine under My Account → API access key.
-                                    </p>
-                                    <InputError :message="form.errors.redmine_api_key" />
                                 </template>
 
                                 <p class="text-xs text-muted-foreground">

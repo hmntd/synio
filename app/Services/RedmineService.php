@@ -37,6 +37,62 @@ class RedmineService
         }
     }
 
+    public function fetchProjects(User $user): Collection
+    {
+        if (! $user->redmine_api_key) {
+            throw new \InvalidArgumentException('User does not have a Redmine API key configured');
+        }
+
+        $entries = collect();
+        $offset = 0;
+        $hasMore = true;
+
+        while ($hasMore) {
+            try {
+                $response = $this->makeRequest($user, 'GET', '/projects.json', [
+                    'limit' => self::PER_PAGE,
+                ]);
+
+                if (! $response->successful()) {
+                    Log::error('Failed to fetch Redmine projects', [
+                        'user_id' => $user->id,
+                        'status' => $response->status(),
+                        'response' => $response->body(),
+                    ]);
+                    break;
+                }
+
+                $data = $response->json();
+                $projects = $data['projects'] ?? [];
+                if (empty($projects)) {
+                    $hasMore = false;
+                } else {
+                    foreach ($projects as $project) {
+                        $entries->push([
+                            'redmine_id' => $project['id'],
+                            'name' => $project['name'],
+                            'identifier' => $project['identifier'],
+                            'description' => $project['description'] ?? '',
+                            'homepage' => $project['homepage'] ?? '',
+                            'is_public' => $project['is_public'],
+                        ]);
+                    }
+
+                    $offset += self::PER_PAGE;
+                    $hasMore = count($projects) === self::PER_PAGE;
+                }
+            } catch (\Exception $e) {
+                Log::error('Error fetching Redmine projects', [
+                    'user_id' => $user->id,
+                    'error' => $e->getMessage(),
+                ]);
+                break;
+            }
+        }
+
+        return $entries;
+    }
+
     public function fetchTimeEntries(User $user, Carbon $from, Carbon $to): Collection
     {
         if (! $user->redmine_api_key) {

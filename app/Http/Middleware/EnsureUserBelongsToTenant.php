@@ -29,6 +29,8 @@ class EnsureUserBelongsToTenant
             return Inertia::location($request->getScheme() . '://' . $userTenant->subdomain . '.' . config('app.domain') . $request->getPathInfo());
         }
 
+        app()->instance('tenant', $tenant);
+
         return $next($request);
     }
 }
