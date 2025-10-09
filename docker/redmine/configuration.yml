@@ -1,0 +1,19 @@
+# Redmine configuration file for development environment
+#
+# This configuration enables REST API and sets up email in test mode
+
+default:
+  # Enable REST API
+  enable_rest_api: 1
+  
+  # Outgoing email settings (using log for development)
+  email_delivery:
+    delivery_method: :logger
+
+production:
+
+development:
+  # Additional development-specific settings can go here
+
+test:
+  # Test environment settings

@@ -21,7 +21,9 @@ class ProjectsController extends Controller
     {
         $user = $request->user();
         $projects = $user->projects()->get();
-        if ($projects->isEmpty()) {
+        $message = !$user->redmine_api_key ? "User hasn't provided Redmine API key" : '';
+
+        if ($projects->isEmpty() && $user->redmine_api_key) {
             try {
                 $remoteProjects = $this->redmineService->fetchProjects($user);
                 foreach ($remoteProjects as $remote) {
@@ -49,6 +51,7 @@ class ProjectsController extends Controller
 
         return Inertia::render('Projects', [
             'projects' => $projects,
+            'message' => $message,
         ]);
     }
 }

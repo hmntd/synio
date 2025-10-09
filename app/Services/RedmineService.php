@@ -2,7 +2,6 @@
 
 namespace App\Services;
 
-use App\DTOs\RedmineDto;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Client\Response;
@@ -93,7 +92,7 @@ class RedmineService
         return $entries;
     }
 
-    public function fetchTimeEntries(User $user, Carbon $from, Carbon $to): Collection
+    public function fetchTimeEntries(User $user, ?Carbon $from = null, ?Carbon $to = null): Collection
     {
         if (! $user->redmine_api_key) {
             throw new \InvalidArgumentException('User does not have a Redmine API key configured');
@@ -105,14 +104,22 @@ class RedmineService
 
         while ($hasMore) {
             try {
-                $response = $this->makeRequest($user, 'GET', '/time_entries.json', [
+                $params = [
                     'user_id' => 'me',
-                    'from' => $from->format('Y-m-d'),
-                    'to' => $to->format('Y-m-d'),
                     'limit' => self::PER_PAGE,
                     'offset' => $offset,
                     'include' => 'project,issue,activity,user',
-                ]);
+                ];
+
+                if ($from) {
+                    $params['from'] = $from->format('Y-m-d');
+                }
+
+                if ($to) {
+                    $params['to'] = $to->format('Y-m-d');
+                }
+
+                $response = $this->makeRequest($user, 'GET', '/time_entries.json', $params);
 
                 if (! $response->successful()) {
                     Log::error('Failed to fetch Redmine time entries', [
@@ -130,7 +137,15 @@ class RedmineService
                     $hasMore = false;
                 } else {
                     foreach ($timeEntries as $entry) {
-                        $entries->push(RedmineDto::fromApiResponse($entry));
+                        $entries->push([
+                            'redmine_id' => $entry['id'],
+                            'project_id' => $entry['project']['id'],
+                            'activity_id' => $entry['activity']['id'],
+                            'activity_name' => $entry['activity']['name'],
+                            'hours' => $entry['hours'],
+                            'spent_on' => $entry['spent_on'],
+                            'comments' => $entry['comments'] ?? '',
+                        ]);
                     }
 
                     $offset += self::PER_PAGE;

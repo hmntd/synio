@@ -15,8 +15,9 @@ const handleClick = () => {
 
 <template>
     <Card
-        class="p-4 flex flex-col justify-between cursor-pointer hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-shadow">
-        <div class="flex items-start justify-between" @click="handleClick">
+        class="p-4 flex flex-col justify-between cursor-pointer hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-shadow"
+        @click="handleClick">
+        <div class="flex items-start justify-between">
             <div>
                 <h3 class="text-lg font-semibold text-foreground">{{ props.project.name }}</h3>
                 <p v-if="props.project.identifier" class="text-sm text-muted-foreground"> Identifier: {{

@@ -19,7 +19,7 @@ return new class extends Migration
             $table->unsignedBigInteger('redmine_id');
             $table->string('activity');
             $table->decimal('hours', 10, 2);
-            $table->string('comments');
+            $table->text('comments');
             $table->date('spent_on');
             $table->timestamps();
         });
