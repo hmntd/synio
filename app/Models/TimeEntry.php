@@ -20,7 +20,7 @@ class TimeEntry extends Model
         'project_id',
         'user_id',
         'redmine_id',
-        'activity',
+        'activity_id',
         'hours',
         'comments',
         'spent_on',
@@ -54,5 +54,15 @@ class TimeEntry extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    /**
+     * Get the activity that this time entry belongs to.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function activity(): BelongsTo
+    {
+        return $this->belongsTo(RedmineActivity::class);
     }
 }

@@ -55,4 +55,13 @@ export interface Project {
     updated_at: string;
 }
 
+export interface TimeEntry {
+    id: number;
+    spent_on: string;
+    hours: number;
+    comments: string;
+    user: { name: string };
+    activity: { name: string };
+}
+
 export type BreadcrumbItemType = BreadcrumbItem;

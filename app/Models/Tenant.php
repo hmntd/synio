@@ -53,4 +53,14 @@ class Tenant extends Model
     {
         return $this->hasMany(TimeEntry::class);
     }
+
+    /**
+     * Get the redmine activities that belong to this tenant.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function redmineActivities(): HasMany
+    {
+        return $this->hasMany(RedmineActivity::class);
+    }
 }

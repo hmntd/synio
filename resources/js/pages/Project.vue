@@ -1,20 +1,30 @@
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
 import { dashboard } from '@/routes';
-import { Project, type BreadcrumbItem } from '@/types';
+import { Project, TimeEntry, type BreadcrumbItem } from '@/types';
 import { Head } from '@inertiajs/vue3';
-import PlaceholderPattern from '../components/PlaceholderPattern.vue';
-import { onMounted } from 'vue';
-import ProjectCard from '@/components/Cards/ProjectCard.vue';
 import Button from '@/components/ui/button/Button.vue';
 import { Clock, Plus } from 'lucide-vue-next';
 import CardHeader from '@/components/ui/card/CardHeader.vue';
 import Card from '@/components/ui/card/Card.vue';
 import CardContent from '@/components/ui/card/CardContent.vue';
+import TimeEntryTable from '@/components/Tables/TimeEntryTable.vue';
+import Dialog from '@/components/ui/dialog/Dialog.vue';
+import DialogTrigger from '@/components/ui/dialog/DialogTrigger.vue';
+import CreateTimeEntry from '@/components/Modals/CreateTimeEntry.vue';
+import { onMounted } from 'vue';
 
 interface Props {
     project: Project;
-    time_entries: any[];
+    time_entries: {
+        data: TimeEntry[];
+        current_page: number;
+        last_page: number;
+        links: { url: string | null; label: string; active: boolean }[];
+    };
+    per_page: number;
+    direction: string;
+    activities: { id: number; name: string }[];
 }
 
 const props = defineProps<Props>();
@@ -40,16 +50,22 @@ const breadcrumbs: BreadcrumbItem[] = [
     <Head :title="props.project.name + ' - Project'" />
 
     <AppLayout :breadcrumbs="breadcrumbs">
-        <div class="space-y-6 p-6"> <!-- Header -->
+
+        <div class="space-y-6 p-6">
             <div class="flex items-center justify-between">
                 <div>
                     <h1 class="text-2xl font-semibold">{{ props.project.name }}</h1>
                     <p class="text-muted-foreground text-sm">Identifier: {{ props.project.identifier }}</p>
                     <p class="text-muted-foreground text-sm">Description: {{ props.project.description }}</p>
                 </div>
-                <Button variant='ghost'>
-                    <Plus class="w-4 h-4 mr-2" /> Add Time Entry
-                </Button>
+                <Dialog>
+                    <DialogTrigger as-child>
+                        <Button variant='ghost'>
+                            <Plus class="w-4 h-4 mr-2" /> Add Time Entry
+                        </Button>
+                    </DialogTrigger>
+                    <CreateTimeEntry :activities="props.activities" />
+                </Dialog>
             </div>
             <Card>
                 <CardHeader>
@@ -58,20 +74,8 @@ const breadcrumbs: BreadcrumbItem[] = [
                     </h2>
                 </CardHeader>
                 <CardContent>
-                    <div v-if="props.time_entries.length" class="divide-y divide-border">
-                        <div v-for="entry in props.time_entries" :key="entry.id" class="flex justify-between py-3">
-                            <div>
-                                <div class="font-medium">{{ entry.user.name }}</div>
-                                <div class="text-sm text-muted-foreground"> {{ entry.activity }} — {{ entry.comments ||
-                                    'No comment' }} </div>
-                            </div>
-                            <div class="text-right">
-                                <div class="font-semibold">{{ entry.hours }}h</div>
-                                <div class="text-sm text-muted-foreground">{{ entry.spent_on }}</div>
-                            </div>
-                        </div>
-                    </div>
-                    <div v-else class="text-center text-muted-foreground py-6"> No time entries yet. </div>
+                    <TimeEntryTable :time_entries="props.time_entries" :per_page="props.per_page"
+                        :direction="direction" />
                 </CardContent>
             </Card>
         </div>
