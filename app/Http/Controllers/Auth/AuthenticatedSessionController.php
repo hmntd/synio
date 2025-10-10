@@ -45,6 +45,7 @@ class AuthenticatedSessionController extends Controller
         Auth::login($user, $request->boolean('remember'));
 
         $request->session()->regenerate();
+        $user->tokens()->delete();
 
         return redirect()->intended(route('dashboard', absolute: false));
     }
@@ -58,6 +59,7 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->invalidate();
         $request->session()->regenerateToken();
+        $request->user()->tokens()->delete();
 
         return Inertia::location(config('app.url'));
     }

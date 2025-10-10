@@ -12,18 +12,11 @@ import TimeEntryTable from '@/components/Tables/TimeEntryTable.vue';
 import Dialog from '@/components/ui/dialog/Dialog.vue';
 import DialogTrigger from '@/components/ui/dialog/DialogTrigger.vue';
 import CreateTimeEntry from '@/components/Modals/CreateTimeEntry.vue';
-import { onMounted } from 'vue';
+import { ref, watch } from 'vue';
+import { toast } from 'vue-sonner';
 
 interface Props {
     project: Project;
-    time_entries: {
-        data: TimeEntry[];
-        current_page: number;
-        last_page: number;
-        links: { url: string | null; label: string; active: boolean }[];
-    };
-    per_page: number;
-    direction: string;
     activities: { id: number; name: string }[];
 }
 
@@ -43,6 +36,29 @@ const breadcrumbs: BreadcrumbItem[] = [
         href: '/projects/' + props.project.id,
     },
 ];
+
+const openCreate = ref<boolean>(false);
+const timeEntryTableRef = ref<InstanceType<typeof TimeEntryTable> | null>(null);
+const choosedTimeEntry = ref<TimeEntry | null>(null);
+
+const handleCreatedTimeEntry = () => {
+    const toastMessage = choosedTimeEntry.value ? 'Time entry updated successfully!' : 'Time entry created successfully!';
+    openCreate.value = false;
+    timeEntryTableRef.value?.fetchTimeEntries();
+    toast.success(toastMessage);
+}
+
+const handleEdit = (timeEntry: TimeEntry) => {
+    choosedTimeEntry.value = timeEntry;
+    openCreate.value = true;
+    return;
+}
+
+watch(() => openCreate.value, () => {
+    if (!openCreate.value) {
+        choosedTimeEntry.value = null
+    }
+})
 </script>
 
 <template>
@@ -58,13 +74,14 @@ const breadcrumbs: BreadcrumbItem[] = [
                     <p class="text-muted-foreground text-sm">Identifier: {{ props.project.identifier }}</p>
                     <p class="text-muted-foreground text-sm">Description: {{ props.project.description }}</p>
                 </div>
-                <Dialog>
+                <Dialog v-model:open="openCreate">
                     <DialogTrigger as-child>
                         <Button variant='ghost'>
                             <Plus class="w-4 h-4 mr-2" /> Add Time Entry
                         </Button>
                     </DialogTrigger>
-                    <CreateTimeEntry :activities="props.activities" />
+                    <CreateTimeEntry :project_id="props.project.id" :activities="props.activities" :open="openCreate"
+                        :time_entry="choosedTimeEntry" @close="handleCreatedTimeEntry" />
                 </Dialog>
             </div>
             <Card>
@@ -74,8 +91,7 @@ const breadcrumbs: BreadcrumbItem[] = [
                     </h2>
                 </CardHeader>
                 <CardContent>
-                    <TimeEntryTable :time_entries="props.time_entries" :per_page="props.per_page"
-                        :direction="direction" />
+                    <TimeEntryTable ref="timeEntryTableRef" :project_id="props.project.id" @edit="handleEdit" />
                 </CardContent>
             </Card>
         </div>

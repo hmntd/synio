@@ -61,7 +61,7 @@ export interface TimeEntry {
     hours: number;
     comments: string;
     user: { name: string };
-    activity: { name: string };
+    activity_id: number;
 }
 
 export type BreadcrumbItemType = BreadcrumbItem;

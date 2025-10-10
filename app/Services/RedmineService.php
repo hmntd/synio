@@ -215,6 +215,39 @@ class RedmineService
         }
     }
 
+    public function updateTimeEntry(User $user, int $timeEntryId, array $payload): Response
+    {
+        if (! $user->redmine_api_key) {
+            throw new \InvalidArgumentException('User does not have a Redmine API key configured');
+        }
+
+        $timeEntry = [
+            'time_entry' => [
+                'issue_id' => $payload['issue_id'] ?? null,
+                'project_id' => $payload['project_id'] ?? null,
+                'spent_on' => $payload['date'] ?? Carbon::today()->format('Y-m-d'),
+                'hours' => $payload['hours'],
+                'activity_id' => $payload['activity_id'] ?? 1,
+                'comments' => $payload['comments'] ?? '',
+            ],
+        ];
+
+        if (empty($timeEntry['time_entry']['issue_id']) && empty($timeEntry['time_entry']['project_id'])) {
+            throw new \InvalidArgumentException('Either issue_id or project_id must be provided');
+        }
+
+        return $this->makeRequest($user, 'PUT', "/time_entries/{$timeEntryId}.json", [
+            'time_entry' => array_filter($timeEntry['time_entry'], function ($value) {
+                return $value !== null;
+            })
+        ]);
+    }
+
+    public function deleteTimeEntry(User $user, int $timeEntryId): Response
+    {
+        return $this->makeRequest($user, 'DELETE', "/time_entries/{$timeEntryId}.json");
+    }
+
     protected function makeRequest(User $user, string $method, string $endpoint, array $data = []): Response
     {
         $baseUrl = $this->resolveBaseUrl($user);
