@@ -25,7 +25,7 @@ interface ApiResponse {
 }
 
 interface Props {
-    project_id: number;
+    project_id: string;
 }
 
 const props = defineProps<Props>();
@@ -134,83 +134,86 @@ defineExpose({
 
 
 <template>
-    <div class="overflow-x-auto w-full">
-        <table v-if="!isLoading && timeEntries.length"
-            class="min-w-full border border-border rounded-lg overflow-hidden">
-            <thead class="bg-muted">
-                <tr>
-                    <th class="flex items-center gap-1 px-4 py-2 text-center text-sm font-semibold text-muted-foreground cursor-pointer"
-                        @click="sort = sort === 'asc' ? 'desc' : 'asc'">
-                        Date
-                        <ArrowDownWideNarrow v-if="sort === 'desc'" :size="14" />
-                        <ArrowUpNarrowWide v-else :size="14" />
-                    </th>
-                    <th class="px-4 py-2 text-left text-sm font-semibold text-muted-foreground">User</th>
-                    <th class="px-4 py-2 text-left text-sm font-semibold text-muted-foreground">Activity</th>
-                    <th class="px-4 py-2 text-left text-sm font-semibold text-muted-foreground">Comments</th>
-                    <th class="px-4 py-2 text-center text-sm font-semibold text-muted-foreground">Hours</th>
-                    <th class="px-4 py-2 text-left text-sm font-semibold text-muted-foreground">Actions</th>
-                </tr>
-            </thead>
-            <tbody class="divide-y divide-border">
-                <tr v-for="entry in timeEntries" :key="entry.id" class="hover:bg-muted/50">
-                    <td class="px-4 py-2 text-sm text-left text-muted-foreground whitespace-nowrap">
-                        {{ entry.spent_on }}</td>
-                    <td class="px-4 py-2 text-sm font-medium">{{ entry.user.name }}</td>
-                    <td class="px-4 py-2 text-sm text-muted-foreground">{{ entry.activity.name }}</td>
-                    <td class="px-4 py-2 text-sm text-muted-foreground">
-                        {{ entry.comments || 'No comment' }}
-                    </td>
-                    <td class="px-4 py-2 text-sm text-center font-semibold">{{ entry.hours }}h</td>
-                    <td class="px-4 py-2 text-sm text-left font-semibold">
-                        <div class="flex items-center">
-                            <Tooltip>
-                                <TooltipTrigger>
-                                    <Button variant="ghost" size="sm"
-                                        class="text-muted-foreground dark:hover:text-white" @click="editEntry(entry)">
-                                        <SquarePen class="w-4 h-4" />
-                                    </Button>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                    <p>Edit time entry</p>
-                                </TooltipContent>
-                            </Tooltip>
+    <div class=" w-full">
+        <div v-if="!isLoading && timeEntries.length" class="w-full overflow-x-auto">
+            <table class="min-w-full border border-border rounded-lg overflow-hidden">
+                <thead class="bg-muted">
+                    <tr>
+                        <th class="flex items-center gap-1 px-4 py-2 text-center text-sm font-semibold text-muted-foreground cursor-pointer"
+                            @click="sort = sort === 'asc' ? 'desc' : 'asc'">
+                            Date
+                            <ArrowDownWideNarrow v-if="sort === 'desc'" :size="14" />
+                            <ArrowUpNarrowWide v-else :size="14" />
+                        </th>
+                        <th class="px-4 py-2 text-left text-sm font-semibold text-muted-foreground">User</th>
+                        <th class="px-4 py-2 text-left text-sm font-semibold text-muted-foreground">Activity</th>
+                        <th class="px-4 py-2 text-left text-sm font-semibold text-muted-foreground">Comments</th>
+                        <th class="px-4 py-2 text-center text-sm font-semibold text-muted-foreground">Hours</th>
+                        <th class="px-4 py-2 text-left text-sm font-semibold text-muted-foreground">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-border">
+                    <tr v-for="entry in timeEntries" :key="entry.id" class="hover:bg-muted/50">
+                        <td class="px-4 py-2 text-sm text-left text-muted-foreground whitespace-nowrap">
+                            {{ entry.spent_on }}</td>
+                        <td class="px-4 py-2 text-sm font-medium">{{ entry.user.name }}</td>
+                        <td class="px-4 py-2 text-sm text-muted-foreground">{{ entry.activity.name }}</td>
+                        <td class="px-4 py-2 text-sm text-muted-foreground">
+                            {{ entry.comments || 'No comment' }}
+                        </td>
+                        <td class="px-4 py-2 text-sm text-center font-semibold">{{ entry.hours }}h</td>
+                        <td class="px-4 py-2 text-sm text-left font-semibold">
+                            <div class="flex items-center">
+                                <Tooltip>
+                                    <TooltipTrigger>
+                                        <Button variant="ghost" size="sm"
+                                            class="text-muted-foreground dark:hover:text-white"
+                                            @click="editEntry(entry)">
+                                            <SquarePen class="w-4 h-4" />
+                                        </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                        <p>Edit time entry</p>
+                                    </TooltipContent>
+                                </Tooltip>
 
-                            <Tooltip>
-                                <Dialog>
-                                    <DialogTrigger as-child>
-                                        <TooltipTrigger as-child>
-                                            <Button variant="ghost" size="sm"
-                                                class="text-muted-foreground dark:hover:text-white">
-                                                <Trash2 class="w-4 h-4" />
-                                            </Button>
-                                        </TooltipTrigger>
-                                    </DialogTrigger>
-                                    <DialogContent class="sm:max-w-md">
-                                        <DialogHeader>
-                                            <DialogTitle>Confirm Deletion</DialogTitle>
-                                        </DialogHeader>
-                                        <p>Are you sure you want to delete this entry?</p>
-                                        <div class="flex justify-end gap-2">
-                                            <DialogClose as-child>
-                                                <Button variant="outline" :disabled="isDeleting">Cancel</Button>
-                                            </DialogClose>
+                                <Tooltip>
+                                    <Dialog>
+                                        <DialogTrigger as-child>
+                                            <TooltipTrigger as-child>
+                                                <Button variant="ghost" size="sm"
+                                                    class="text-muted-foreground dark:hover:text-white">
+                                                    <Trash2 class="w-4 h-4" />
+                                                </Button>
+                                            </TooltipTrigger>
+                                        </DialogTrigger>
+                                        <DialogContent class="sm:max-w-md">
+                                            <DialogHeader>
+                                                <DialogTitle>Confirm Deletion</DialogTitle>
+                                            </DialogHeader>
+                                            <p>Are you sure you want to delete this entry?</p>
+                                            <div class="flex justify-end gap-2">
+                                                <DialogClose as-child>
+                                                    <Button variant="outline" :disabled="isDeleting">Cancel</Button>
+                                                </DialogClose>
 
-                                            <Button @click="deleteEntry(entry.id)" :disabled="isDeleting">
-                                                <Spinner v-if="isDeleting" />{{ isDeleting ? "Deleting..." : "Delete" }}
-                                            </Button>
-                                        </div>
-                                    </DialogContent>
-                                </Dialog>
-                                <TooltipContent>
-                                    <p>Delete time entry</p>
-                                </TooltipContent>
-                            </Tooltip>
-                        </div>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
+                                                <Button @click="deleteEntry(entry.id)" :disabled="isDeleting">
+                                                    <Spinner v-if="isDeleting" />{{ isDeleting ? "Deleting..." :
+                                                    "Delete" }}
+                                                </Button>
+                                            </div>
+                                        </DialogContent>
+                                    </Dialog>
+                                    <TooltipContent>
+                                        <p>Delete time entry</p>
+                                    </TooltipContent>
+                                </Tooltip>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
 
         <div v-else-if="isLoading" class="w-full h-full flex flex-col gap-2">
             <Skeleton v-for="i in 5" class="h-8 w-full" />
@@ -220,9 +223,7 @@ defineExpose({
             No time entries found.
         </p>
 
-        <div class="flex justify-between items-center mt-4">
-            <div />
-            <!-- Pagination -->
+        <div class="relative flex items-center justify-center mt-4 p-1">
             <div class="flex justify-center items-center gap-2">
                 <Button variant="ghost" class="h-8 w-8 rounded-2xl" :disabled="pagination.current_page === 1"
                     @click="changePage(pagination.current_page - 1)">
@@ -245,7 +246,7 @@ defineExpose({
                 </Button>
             </div>
 
-            <div class="flex items-center gap-2 p-2">
+            <div class="absolute right-2 flex items-center gap-2">
                 <label for="per-page" class="text-sm text-muted-foreground">Per page:</label>
                 <select id="per-page" v-model="perPage" class="h-8 p-1 rounded-md border border-border bg-background text-sm text-foreground
                         focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2

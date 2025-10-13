@@ -11,7 +11,7 @@ class ActivityController extends Controller
     public function index(): HttpFoundationResponse
     {
         $user = auth()->user();
-        $tenant = $user->tenant()->get();
+        $tenant = $user->tenant;
         $activities = $tenant->redmineActivities()->get();
 
         return response()->json([

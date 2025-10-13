@@ -16,7 +16,7 @@ import DialogHeader from '../ui/dialog/DialogHeader.vue';
 import DialogTitle from '../ui/dialog/DialogTitle.vue';
 import Input from '../ui/input/Input.vue';
 import Label from '../ui/label/Label.vue';
-import { ref, watch } from 'vue';
+import { onMounted, ref, watch } from 'vue';
 import Calendar from '../ui/calendar/Calendar.vue';
 import Popover from "../ui/popover/Popover.vue";
 import PopoverTrigger from "../ui/popover/PopoverTrigger.vue";
@@ -26,10 +26,10 @@ import { useForm } from "@inertiajs/vue3";
 import DialogClose from "../ui/dialog/DialogClose.vue";
 import { toast } from "vue-sonner";
 import Spinner from "../ui/spinner/Spinner.vue";
-import { TimeEntry } from "@/types";
+import { Project, TimeEntry } from "@/types";
 
 interface Props {
-    project_id: number;
+    project_id: string | undefined;
     activities: { id: number; name: string }[];
     open: boolean;
     time_entry: TimeEntry | null;
@@ -52,6 +52,7 @@ const df = new DateFormatter("en-US", {
 });
 const date = ref<DateValue>(today(getLocalTimeZone()));
 const creating = ref(false);
+const projects = ref<Project[]>([]);
 
 const onHoursInput = (e: Event) => {
     let value = (e.target as HTMLInputElement).value
@@ -156,7 +157,21 @@ watch(() => props.time_entry, () => {
     form.comments = props.time_entry.comments;
     form.activity_id = props.time_entry.activity_id;
     form.spent_on = props.time_entry.spent_on;
+    form.project_id = props.time_entry.project_id;
     date.value = parseDate(props.time_entry.spent_on);
+});
+
+onMounted(async () => {
+    if (!props.project_id) {
+        const response = await fetch('/api/projects', {
+            headers: {
+                'Accept': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('token')}`,
+            }
+        });
+        const data = await response.json();
+        projects.value = data.projects;
+    }
 })
 </script>
 
@@ -170,6 +185,27 @@ watch(() => props.time_entry, () => {
             </DialogDescription>
         </DialogHeader>
         <div class="grid gap-4 py-4">
+            <div v-if="!props.project_id" class="grid grid-cols-4 items-center gap-4">
+                <Label for="project" class="text-right">
+                    Project
+                </Label>
+                <div class="flex flex-col col-span-3 w-full">
+                    <select id="project" v-model="form.project_id" class="h-9 w-full rounded-md border border-input 
+                        bg-transparent dark:bg-input/30 px-2 py-1 text-sm
+                        focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50 
+                        transition-colors" :class="{ 'text-muted-foreground': !form.project_id }">
+                        <option :value="undefined" class="hidden">Select a project</option>
+                        <option class="bg-background" v-for="project in projects" :key="project.id" :value="project.id">
+                            {{ project.name }}
+                        </option>
+                    </select>
+
+                    <p v-if="form.errors.project_id" class="text-destructive text-sm mt-1 col-span-3">{{
+                        form.errors.project_id }}
+                    </p>
+                </div>
+            </div>
+
             <div class="grid grid-cols-4 items-center gap-4">
                 <Label for="date" class="text-right">
                     Date
@@ -189,7 +225,8 @@ watch(() => props.time_entry, () => {
                             <Calendar v-model="date" initial-focus />
                         </PopoverContent>
                     </Popover>
-                    <p v-if="form.errors.spent_on" class="text-destructive text-sm mt-1">{{ form.errors.spent_on }}</p>
+                    <p v-if="form.errors.spent_on" class="text-destructive text-sm mt-1">{{ form.errors.spent_on }}
+                    </p>
                 </div>
             </div>
 
@@ -210,7 +247,8 @@ watch(() => props.time_entry, () => {
                 </Label>
                 <div class="flex flex-col col-span-3">
                     <Input id="comments" v-model="form.comments" type="text" placeholder="Enter the comments" />
-                    <p v-if="form.errors.comments" class="text-destructive text-sm mt-1">{{ form.errors.comments }}</p>
+                    <p v-if="form.errors.comments" class="text-destructive text-sm mt-1">{{ form.errors.comments }}
+                    </p>
                 </div>
             </div>
 
@@ -220,9 +258,10 @@ watch(() => props.time_entry, () => {
                 </Label>
                 <div class="flex flex-col col-span-3 w-full">
                     <select id="activity" v-model="form.activity_id" class="h-9 w-full rounded-md border border-input 
-                        bg-transparent dark:bg-input/30 px-3 py-1 text-sm
+                        bg-transparent dark:bg-input/30 px-2 py-1 text-sm
                         focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50 
-                        transition-colors">
+                        transition-colors" :class="{ 'text-muted-foreground': !form.activity_id }">
+                        <option value="" class="hidden">Select an activity</option>
                         <option class="bg-background" v-for="activity in props.activities" :key="activity.id"
                             :value="activity.id">
                             {{ activity.name }}

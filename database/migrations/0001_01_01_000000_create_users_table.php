@@ -23,7 +23,8 @@ return new class extends Migration
             $table->string('password');
             $table->rememberToken();
             $table->decimal('daily_hours_target', 10, 2)->default(8);
-            $table->string('timezone')->nullable();
+            $table->time('send_time')->default('08:00:00');
+            $table->string('timezone')->default('Europe/Kyiv');
             $table->timestamps();
         });
 

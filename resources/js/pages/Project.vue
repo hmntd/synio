@@ -58,7 +58,7 @@ watch(() => openCreate.value, () => {
     if (!openCreate.value) {
         choosedTimeEntry.value = null
     }
-})
+});
 </script>
 
 <template>

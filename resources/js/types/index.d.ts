@@ -37,12 +37,15 @@ export interface User {
     email: string;
     avatar?: string;
     email_verified_at: string | null;
+    daily_hours_target: number;
+    daily_hours: number;
+    timezone: string;
     created_at: string;
     updated_at: string;
 }
 
 export interface Project {
-    id: number;
+    id: string;
     tenant_id: number;
     user_id: number;
     redmine_id: number;
@@ -57,11 +60,15 @@ export interface Project {
 
 export interface TimeEntry {
     id: number;
+    project_id: string;
     spent_on: string;
     hours: number;
     comments: string;
     user: { name: string };
-    activity_id: number;
+    activity: { name: string };
+    project: Project;
+    created_at: string;
+    updated_at: string;
 }
 
 export type BreadcrumbItemType = BreadcrumbItem;

@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('time_entries', function (Blueprint $table) {
             $table->id();
             $table->foreignId('tenant_id')->constrained('tenants')->onDelete('cascade')->onUpdate('cascade');
-            $table->foreignId('project_id')->constrained('projects')->onDelete('cascade')->onUpdate('cascade');
+            $table->foreignUuid('project_id')->constrained('projects')->onDelete('cascade')->onUpdate('cascade');
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade')->onUpdate('cascade');
             $table->unsignedBigInteger('redmine_id');
             $table->string('activity');

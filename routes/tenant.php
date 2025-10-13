@@ -11,7 +11,7 @@ Route::domain('{tenant}.' . config('app.domain'))
     ->group(function () {
         Route::get('/dashboard', fn() => Inertia::render('Dashboard'));
 
-        Route::get('/projects', [ProjectsController::class, 'index'])->name('projects.index');
+        Route::get('/projects', fn() => Inertia::render('Projects'))->name('projects.index');
 
         Route::get('/time-entries', fn() => Inertia::render('TimeEntries'));
 

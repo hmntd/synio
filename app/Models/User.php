@@ -37,6 +37,9 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'daily_hours_target',
+        'send_time',
+        'timezone',
     ];
 
     /**
@@ -61,6 +64,7 @@ class User extends Authenticatable
         'redmine_api_provided',
         'slack_provided',
         'telegram_provided',
+        'daily_hours',
     ];
 
     /**
@@ -104,6 +108,16 @@ class User extends Authenticatable
     protected function telegramProvided(): Attribute
     {
         return Attribute::get(fn() => !empty($this->telegram_user_id));
+    }
+
+    /**
+     * The total hours the user has worked today.
+     *
+     * @return \Illuminate\Database\Eloquent\Casts\Attribute
+     */
+    protected function dailyHours(): Attribute
+    {
+        return Attribute::get(fn() => $this->timeEntries()->whereDate('spent_on', today($this->timezone))->sum('hours'));
     }
 
     /**

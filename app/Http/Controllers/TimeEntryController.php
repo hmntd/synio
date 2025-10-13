@@ -28,11 +28,22 @@ class TimeEntryController extends Controller
         }
 
         $user = $request->user();
+        $userProjects = $user->projects()->get();
+        if (!$userProjects->contains($project)) {
+            return Inertia::to(Route('projects.index'));
+        }
 
         return Inertia::render('Project', [
             'project' => $project,
             'activities' => RedmineActivity::all(),
         ]);
+    }
+
+    public function index(): JsonResponse
+    {
+        return response()->json([
+            'time_entries' => auth()->user()->timeEntries()->with(['activity', 'project', 'user'])->get(),
+        ], Response::HTTP_OK);
     }
 
     public function store(Request $request): JsonResponse
@@ -45,14 +56,16 @@ class TimeEntryController extends Controller
             'project_id' => 'required|exists:projects,id',
         ]);
 
+        $project = Project::findOrFail($request->project_id);
+        $activity = RedmineActivity::findOrFail($request->activity_id);
         $date = Carbon::parse($request->spent_on)->format('Y-m-d');
 
         $response = $this->redmineService->createTimeEntry($request->user(), [
             'issue_id' => null,
-            'project_id' => $request->project_id,
+            'project_id' => $project->redmine_id,
             'date' => $date,
             'hours' => $request->hours,
-            'activity_id' => $request->activity_id,
+            'activity_id' => $activity->redmine_id,
             'comments' => $request->comments,
         ]);
 
@@ -113,9 +126,6 @@ class TimeEntryController extends Controller
     public function destroy(Request $request): JsonResponse
     {
         $timeEntry = TimeEntry::findOrFail($request->timeEntryId);
-        $project = $timeEntry->project;
-        $direction = request()->input('sort', 'desc');
-        $perPage = request()->integer('per_page', 25);
 
         $this->redmineService->deleteTimeEntry(auth()->user(), $timeEntry->redmine_id);
         $timeEntry->delete();
@@ -152,7 +162,7 @@ class TimeEntryController extends Controller
                     ], [
                         'user_id' => $user->id,
                         // 'issue_id' => $remote['issue'] ? $remote['issue']['id'] : null,
-                        'project_id' => $project->id,
+                        'project_id' => $request->projectId,
                         'spent_on' => $remote['spent_on'],
                         'hours' => $remote['hours'],
                         'activity_id' => $remote['activity_id'],

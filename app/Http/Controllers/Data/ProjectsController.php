@@ -6,7 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Models\Project;
 use App\Models\Tenant;
 use App\Services\RedmineService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 use Inertia\Response as InertiaResponse;
@@ -17,7 +19,7 @@ class ProjectsController extends Controller
         private RedmineService $redmineService
     ) {}
 
-    public function index(Request $request): InertiaResponse
+    public function index(Request $request): JsonResponse
     {
         $user = $request->user();
         $projects = $user->projects()->get();
@@ -49,9 +51,9 @@ class ProjectsController extends Controller
             }
         }
 
-        return Inertia::render('Projects', [
+        return response()->json([
             'projects' => $projects,
             'message' => $message,
-        ]);
+        ], Response::HTTP_OK);
     }
 }

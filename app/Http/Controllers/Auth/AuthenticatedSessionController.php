@@ -55,11 +55,12 @@ class AuthenticatedSessionController extends Controller
      */
     public function destroy(Request $request): HttpFoundationResponse
     {
+        $request->user()->tokens()->delete();
+
         Auth::guard('web')->logout();
 
         $request->session()->invalidate();
         $request->session()->regenerateToken();
-        $request->user()->tokens()->delete();
 
         return Inertia::location(config('app.url'));
     }
