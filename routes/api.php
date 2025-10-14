@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\ActivityController;
 use App\Http\Controllers\Data\ProjectsController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\TimeEntryController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -10,7 +11,7 @@ Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
 
-Route::get('/create-token', function (Request $request) {
+Route::get('/create-token', function () {
     auth()->user()->tokens()->delete();
     $token = auth()->user()->createToken('api_token')->plainTextToken;
     return response()->json([
@@ -32,4 +33,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/timezones', fn() => response()->json([
         'timezones' => DateTimeZone::listIdentifiers(),
     ]));
+
+    Route::post('/test-notification', [NotificationController::class, 'sendSlackNotification']);
 });

@@ -65,6 +65,7 @@ class User extends Authenticatable
         'slack_provided',
         'telegram_provided',
         'daily_hours',
+        'monthly_hours',
     ];
 
     /**
@@ -118,6 +119,25 @@ class User extends Authenticatable
     protected function dailyHours(): Attribute
     {
         return Attribute::get(fn() => $this->timeEntries()->whereDate('spent_on', today($this->timezone))->sum('hours'));
+    }
+
+    /**
+     * The total hours the user has worked this month.
+     *
+     * @return \Illuminate\Database\Eloquent\Casts\Attribute
+     */
+    protected function monthlyHours(): Attribute
+    {
+        return Attribute::get(function () {
+            $tz = $this->timezone ?? config('app.timezone');
+
+            $startOfMonth = now($tz)->startOfMonth();
+            $endOfMonth = now($tz)->endOfMonth();
+
+            return $this->timeEntries()
+                ->whereBetween('spent_on', [$startOfMonth, $endOfMonth])
+                ->sum('hours');
+        });
     }
 
     /**

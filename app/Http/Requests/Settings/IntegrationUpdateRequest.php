@@ -25,7 +25,7 @@ class IntegrationUpdateRequest extends FormRequest
             'redmine_base_url' => ['nullable', 'string', 'url', 'max:255'],
             'redmine_api_key' => ['nullable', 'string', 'max:255'],
             'slack_user_id' => ['nullable', 'string', 'max:255', 'regex:/^[A-Z0-9]+$/'],
-            'telegram_chat_id' => ['nullable', 'string', 'max:255', 'regex:/^-?\d+$/'],
+            'telegram_user_id' => ['nullable', 'string', 'max:255', 'regex:/^-?\d+$/'],
         ];
     }
 

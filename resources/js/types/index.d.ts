@@ -39,6 +39,7 @@ export interface User {
     email_verified_at: string | null;
     daily_hours_target: number;
     daily_hours: number;
+    monthly_hours: number;
     timezone: string;
     created_at: string;
     updated_at: string;

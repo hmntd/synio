@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Settings\IntegrationUpdateRequest;
 use App\Models\User;
 use App\Services\RedmineService;
+use App\Services\SlackService;
+use App\Services\TelegramService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Inertia\Inertia;
@@ -15,7 +17,9 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 class IntegrationController extends Controller
 {
     public function __construct(
-        private RedmineService $redmineService
+        private RedmineService $redmineService,
+        private SlackService $slackService,
+        private TelegramService $telegramService,
     ) {}
 
     public function edit(Request $request): InertiaResponse
@@ -31,6 +35,9 @@ class IntegrationController extends Controller
                 'update' => route('integrations.update'),
                 'test_redmine' => route('integrations.test-redmine'),
                 'clear_redmine_key' => route('integrations.clear-redmine-key'),
+                'test_slack' => route('integrations.test-slack'),
+                'clear_slack_key' => route('integrations.clear-slack-key'),
+                'clear_telegram_key' => route('integrations.clear-telegram-key'),
             ],
         ]);
     }
@@ -111,6 +118,63 @@ class IntegrationController extends Controller
             'redmine_api_key' => null
         ]);
 
-        return response()->json(Response::HTTP_OK);
+        return response()->json([
+            'success' => true,
+            'message' => 'Redmine API key cleared successfully.',
+        ], Response::HTTP_OK);
+    }
+
+    public function testSlackKey(Request $request): JsonResponse
+    {
+        $request->validate([
+            'slack_user_id' => ['required', 'string'],
+        ]);
+
+        $user = $request->user();
+        $user->slack_user_id = $request->input('slack_user_id');
+
+        try {
+            $isValid = $this->slackService->validateKey($user);
+            if ($isValid) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Connection successful! Your Slack API key is valid.',
+                ], Response::HTTP_OK);
+            }
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Connection failed. Please check your API key.',
+            ], Response::HTTP_UNPROCESSABLE_ENTITY);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Connection failed: ' . $e->getMessage(),
+            ], Response::HTTP_UNPROCESSABLE_ENTITY);
+        }
+    }
+
+    public function clearSlackKey(Request $request): JsonResponse
+    {
+        $request->user()->update([
+            'slack_user_id' => null
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Slack API key cleared successfully.',
+        ], Response::HTTP_OK);
+    }
+
+    public function clearTelegramKey(Request $request): JsonResponse
+    {
+        $request->user()->update([
+            'telegram_user_id' => null
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Telegram API key cleared successfully.',
+        ], Response::HTTP_OK);
     }
 }

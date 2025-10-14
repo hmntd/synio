@@ -2,36 +2,35 @@
 import { computed } from 'vue'
 
 const props = defineProps({
-  progress: {
-    type: Number,
-    default: 0,
-  },
+  workedHours: { type: Number, default: 0 },
+  workingDays: { type: Number, default: 20 },
+  hoursPerDay: { type: Number, default: 8 },
 })
 
-const radius = 45;
-const circumference = 2 * Math.PI * radius;
+const plan = computed(() => props.workingDays * props.hoursPerDay)
 
-const clampedProgress = computed(() =>
-  Math.min(Math.max(props.progress, 0), 100)
-)
+const progress = computed(() => {
+  const p = (props.workedHours / plan.value) * 100
+  return Math.min(Math.max(p, 0), 100)
+})
 
-const offset = computed(() => {
-  const progress = Math.min(Math.max(props.progress, 0), 100)
-  return circumference - (progress / 100) * circumference
-});
+const color = computed(() => {
+  if (progress.value < 50) return 'bg-red-500'
+  if (progress.value < 90) return 'bg-yellow-500'
+  return 'bg-green-500'
+})
 </script>
 
 <template>
-  <div class="relative w-10 h-10">
-    <svg class="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
-      <circle class="text-muted stroke-current" stroke-width="10" cx="50" cy="50" r="45" fill="transparent" />
-      <circle class="text-green-500 stroke-current transition-all duration-500 ease-in-out" stroke-width="10"
-        stroke-linecap="round" :stroke-dasharray="circumference" :stroke-dashoffset="offset" cx="50" cy="50" r="45"
-        fill="transparent" />
-    </svg>
+  <div class="w-full space-y-1">
+    <div class="flex justify-between text-xs text-muted-foreground">
+      <span>{{ workedHours.toFixed(1) }}h / {{ plan }}h</span>
+      <span>{{ Math.round(progress) }}%</span>
+    </div>
 
-    <div class="absolute inset-0 flex items-center justify-center text-sm font-medium">
-      {{ Math.round(clampedProgress) }}%
+    <div class="h-3 w-full bg-muted rounded-full overflow-hidden">
+      <div class="h-full transition-all duration-700 ease-in-out rounded-full" :class="color"
+        :style="{ width: progress + '%' }"></div>
     </div>
   </div>
 </template>
