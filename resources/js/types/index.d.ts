@@ -39,8 +39,15 @@ export interface User {
     email_verified_at: string | null;
     daily_hours_target: number;
     daily_hours: number;
+    weekly_hours: number;
     monthly_hours: number;
     timezone: string;
+    notification_settings: {
+        frequency: string;
+        send_at: string;
+        enabled: boolean;
+        day_of_week: string;
+    }
     created_at: string;
     updated_at: string;
 }

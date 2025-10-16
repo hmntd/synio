@@ -20,3 +20,5 @@ Schedule::call(function () {
         ]);
     }
 })->dailyAt('00:00')->name('sync-redmine-data')->withoutOverlapping();
+
+Schedule::command('app:send-notifications')->everyMinute()->name('send-notifications');

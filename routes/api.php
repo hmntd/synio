@@ -4,6 +4,7 @@ use App\Http\Controllers\ActivityController;
 use App\Http\Controllers\Data\ProjectsController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\TimeEntryController;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -33,6 +34,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/timezones', fn() => response()->json([
         'timezones' => DateTimeZone::listIdentifiers(),
     ]));
+});
 
-    Route::post('/test-notification', [NotificationController::class, 'sendSlackNotification']);
+Route::post('/test-notification', function () {
+    $user = User::find(1);
+    dispatch(new \App\Jobs\SendUserNotification($user, $user->notificationSettings()->first()));
 });

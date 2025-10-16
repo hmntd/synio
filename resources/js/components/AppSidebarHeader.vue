@@ -64,6 +64,9 @@ onMounted(() => {
                 <TooltipContent>
                     <p>Progress for today: {{ Math.round(user.daily_hours) }} from {{
                         Math.round(user.daily_hours_target) }}</p>
+                    <p>Progress for this week: {{ Math.round(user.weekly_hours) }} from {{
+                        Math.round(user.daily_hours_target) * 5
+                        }}</p>
                 </TooltipContent>
             </Tooltip>
         </div>

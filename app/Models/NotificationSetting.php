@@ -28,6 +28,20 @@ class NotificationSetting extends Model
         'frequency',
         'send_at',
         'enabled',
+        'day_of_week',
+    ];
+
+    /**
+     * The attributes that should be hidden for serialization.
+     *
+     * @var list<string>
+     */
+    protected $hidden = [
+        'id',
+        'tenant_id',
+        'user_id',
+        'created_at',
+        'updated_at',
     ];
 
     /**

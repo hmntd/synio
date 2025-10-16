@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Services\RedmineService;
 use App\Services\SlackService;
 use App\Services\TelegramService;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Inertia\Inertia;
@@ -29,7 +30,7 @@ class IntegrationController extends Controller
                 'redmine_base_url' => $request->user()->redmine_base_url,
                 'redmine_api_key' => $request->user()->redmine_api_key,
                 'slack_user_id' => $request->user()->slack_user_id,
-                'telegram_chat_id' => $request->user()->telegram_chat_id,
+                'telegram_user_id' => $request->user()->telegram_user_id,
             ],
             'routes' => [
                 'update' => route('integrations.update'),
@@ -37,12 +38,13 @@ class IntegrationController extends Controller
                 'clear_redmine_key' => route('integrations.clear-redmine-key'),
                 'test_slack' => route('integrations.test-slack'),
                 'clear_slack_key' => route('integrations.clear-slack-key'),
+                'test_telegram' => route('integrations.test-telegram'),
                 'clear_telegram_key' => route('integrations.clear-telegram-key'),
             ],
         ]);
     }
 
-    public function update(IntegrationUpdateRequest $request)
+    public function update(IntegrationUpdateRequest $request): RedirectResponse
     {
         $user = $request->user();
         $validated = $request->validated();
@@ -164,6 +166,36 @@ class IntegrationController extends Controller
             'success' => true,
             'message' => 'Slack API key cleared successfully.',
         ], Response::HTTP_OK);
+    }
+
+    public function testTelegramKey(Request $request): JsonResponse
+    {
+        $request->validate([
+            'telegram_user_id' => ['required', 'string'],
+        ]);
+
+        $user = $request->user();
+        $user->telegram_user_id = $request->input('telegram_user_id');
+
+        try {
+            $isValid = $this->telegramService->validateKey($user);
+            if ($isValid) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Connection successful! Your Telegram acccount id is valid.',
+                ], Response::HTTP_OK);
+            }
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Connection failed. Please check your Telegram account id.',
+            ], Response::HTTP_UNPROCESSABLE_ENTITY);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Connection failed: ' . $e->getMessage(),
+            ], Response::HTTP_UNPROCESSABLE_ENTITY);
+        }
     }
 
     public function clearTelegramKey(Request $request): JsonResponse

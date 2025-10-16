@@ -3,76 +3,68 @@ import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
 
 const props = defineProps({
     modelValue: String, // format: "HH:mm"
-})
-const emit = defineEmits(['update:modelValue'])
+});
+const emit = defineEmits(['update:modelValue']);
 
-const open = ref(false)
-const hours = ref(0)
-const minutes = ref(0)
+const open = ref(false);
+const hours = ref(0);
+const minutes = ref(0);
 
 const displayTime = computed(() => {
-    return `${String(hours.value).padStart(2, '0')}:${String(minutes.value).padStart(2, '0')}`
+    return `${String(hours.value).padStart(2, '0')}:${String(minutes.value).padStart(2, '0')}`;
 });
 
+const sanitizeTime = (value: string, max: number) => {
+    let num = parseInt(value.replace(/[^0-9]/g, ''), 10);
+    if (isNaN(num)) return '';
+    return String(Math.min(Math.max(num, 0), max)).padStart(2, '0');
+}
+
 const onTimeInput = (e: Event, type: 'hours' | 'minutes') => {
-    const input = e.target as HTMLInputElement
-    let value = input.value.replace(/[^0-9]/g, '')
+    const input = e.target as HTMLInputElement;
+    const max = type === 'hours' ? 23 : 59;
+    const cleaned = sanitizeTime(input.value, max);
 
-    if (value === '') {
-        input.value = ''
-        return
-    }
+    input.value = cleaned;
+    if (type === 'hours') hours.value = Number(cleaned);
+    else minutes.value = Number(cleaned);
+};
 
-    let num = parseInt(value, 10)
-
-    if (type === 'hours') {
-        num = Math.min(Math.max(num, 0), 23)
-        hours.value = num
-    } else {
-        num = Math.min(Math.max(num, 0), 59)
-        minutes.value = num
-    }
-
-    input.value = String(num).padStart(2, '0')
+const toggle = () => {
+    open.value = !open.value;
 }
 
-
-watch([hours, minutes], () => {
-    emit('update:modelValue', displayTime.value)
-})
-
-watch(
-    () => props.modelValue,
-    (val) => {
-        if (!val) return
-        const [h, m] = val.split(':').map(Number)
-        hours.value = h
-        minutes.value = m
-    },
-    { immediate: true }
-)
-
-function toggle() {
-    open.value = !open.value
-}
-
-function increment(type: string) {
+const increment = (type: string) => {
     if (type === 'hours') hours.value = (hours.value + 1) % 24
     else minutes.value = (minutes.value + 1) % 60
 }
 
-function decrement(type: string) {
-    if (type === 'hours') hours.value = (hours.value + 23) % 24
-    else minutes.value = (minutes.value + 59) % 60
-}
+const decrement = (type: string) => {
+    if (type === 'hours') hours.value = (hours.value + 23) % 24;
+    else minutes.value = (minutes.value + 59) % 60;
+};
 
-// close on outside click
-function onClickOutside(e: MouseEvent) {
-    const target = e.target as HTMLElement | null
+const onClickOutside = (e: MouseEvent) => {
+    const target = e.target as HTMLElement | null;
     if (!target?.closest('.relative.inline-block')) {
-        open.value = false
+        open.value = false;
     }
-}
+};
+
+watch([hours, minutes], () => {
+    emit('update:modelValue', displayTime.value);
+});
+
+watch(
+    () => props.modelValue,
+    (val) => {
+        if (!val) return;
+        const [h, m] = val.split(':');
+        hours.value = Number(sanitizeTime(h, 23));
+        minutes.value = Number(sanitizeTime(m, 59));
+    },
+    { immediate: true }
+);
 
 onMounted(() => document.addEventListener('click', onClickOutside))
 onBeforeUnmount(() => document.removeEventListener('click', onClickOutside))

@@ -17,6 +17,7 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
             $table->enum('frequency', ['daily', 'weekly'])->default('daily');
             $table->time('send_at')->default('18:00');
+            $table->string('day_of_week')->default('friday');
             $table->boolean('enabled')->default(true);
             $table->timestamps();
         });

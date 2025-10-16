@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\Settings\PasswordController;
 use App\Http\Controllers\Settings\ProfileController;
 use App\Http\Controllers\Settings\IntegrationController;
@@ -30,10 +31,12 @@ Route::middleware(['auth', 'ensure.tenant'])->group(function () {
         Route::delete('/clear-slack-key', [IntegrationController::class, 'clearSlackKey'])->name('integrations.clear-slack-key');
 
         // Telegram
+        Route::post('/test-telegram', [IntegrationController::class, 'testTelegramKey'])->name('integrations.test-telegram');
         Route::delete('/clear-telegram-key', [IntegrationController::class, 'clearTelegramKey'])->name('integrations.clear-telegram-key');
     });
 
     Route::get('settings/notifications', fn() => Inertia::render('settings/Notifications'))->name('notifications.edit');
+    Route::patch('settings/notifications', [NotificationController::class, 'update'])->name('notifications.update');
 
     Route::get('settings/password', [PasswordController::class, 'edit'])->name('password.edit');
 

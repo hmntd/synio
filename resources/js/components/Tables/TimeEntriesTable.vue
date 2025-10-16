@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed, watch } from 'vue';
 import { TimeEntry } from '@/types';
 import { toast } from 'vue-sonner';
 import Button from '../ui/button/Button.vue';
@@ -15,21 +15,29 @@ import DialogClose from '../ui/dialog/DialogClose.vue';
 import TooltipContent from '../ui/tooltip/TooltipContent.vue';
 import Skeleton from '../ui/skeleton/Skeleton.vue';
 import Spinner from '../ui/spinner/Spinner.vue';
-import { router } from '@inertiajs/vue3';
+import { router, usePage } from '@inertiajs/vue3';
 
 interface ApiResponse {
     time_entries: TimeEntry[];
 }
 
-const emits = defineEmits(['edit']);
+const emits = defineEmits(['edit', 'show-empty']);
 
+const page = usePage();
 const sort = ref<'asc' | 'desc'>('desc');
 const timeEntries = ref<TimeEntry[]>([]);
-const isLoading = ref(false);
-const isDeleting = ref(false);
+const isLoading = ref<boolean>(false);
+const isDeleting = ref<boolean>(false);
+const message = ref<string>(
+    !page.props.auth.user.redmine_api_provided ?
+        'You have not provided your Redmine API key yet' :
+        ''
+);
 
 const fetchTimeEntries = async () => {
     isLoading.value = true;
+    message.value = '';
+
     try {
         const token = localStorage.getItem('token');
         const res = await fetch('/api/time-entries', {
@@ -43,6 +51,7 @@ const fetchTimeEntries = async () => {
         timeEntries.value = data.time_entries;
     } catch (e) {
         console.error(e);
+        message.value = 'Failed to load time entries';
         toast.error('Failed to load time entries');
     } finally {
         isLoading.value = false;
@@ -79,6 +88,10 @@ const deleteEntry = async (id: number) => {
     }
 };
 
+watch(message, () => {
+    emits('show-empty', message.value !== '' || !page.props.auth.user.redmine_api_provided);
+});
+
 onMounted(fetchTimeEntries);
 
 defineExpose({
@@ -87,7 +100,7 @@ defineExpose({
 </script>
 
 <template>
-    <div class="overflow-x-auto w-full">
+    <div v-if="!message && page.props.auth.user.redmine_api_provided" class="overflow-x-auto w-full">
         <table v-if="!isLoading && timeEntries.length"
             class="min-w-full border border-border rounded-lg overflow-hidden">
             <thead class="bg-muted">

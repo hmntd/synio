@@ -2,8 +2,7 @@
 import { Head, useForm, usePage } from '@inertiajs/vue3';
 import { ref, watch } from 'vue';
 import { toast } from 'vue-sonner';
-import { Eye, EyeOff, TestTube, CheckCircle, Loader2, RefreshCcw, Trash2 } from 'lucide-vue-next';
-
+import { Eye, EyeOff, TestTube, CheckCircle, Loader2, RefreshCcw } from 'lucide-vue-next';
 import HeadingSmall from '@/components/HeadingSmall.vue';
 import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
@@ -27,6 +26,7 @@ interface Props {
         clear_redmine_key: string;
         test_slack: string;
         clear_slack_key: string;
+        test_telegram: string;
         clear_telegram_key: string;
     };
 }
@@ -55,6 +55,7 @@ const isTestingRedmine = ref<boolean>(false);
 const isClearingRedmineKey = ref<boolean>(false);
 const isTestingSlack = ref<boolean>(false);
 const isClearingSlackKey = ref<boolean>(false);
+const isTestingTelegram = ref<boolean>(false);
 const isClearingTelegramKey = ref<boolean>(false);
 
 const provided = ref<{
@@ -254,6 +255,55 @@ const clearSlackKey = async () => {
     }
 }
 
+const testTelegramConnection = async () => {
+    if (!form.telegram_user_id) {
+        toast.error('Please enter your Telegram account id first.');
+        return;
+    }
+
+    isTestingTelegram.value = true;
+    form.errors.telegram_user_id = '';
+    const loadingToast = toast.loading('Testing connection...');
+    const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+
+    try {
+        const response = await fetch(props.routes.test_telegram, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': token as string,
+            },
+            body: JSON.stringify({
+                telegram_user_id: form.telegram_user_id,
+            }),
+        });
+
+        const data = await response.json();
+
+        toast.dismiss(loadingToast);
+
+        if (response.ok && data.success) {
+            toast.success('Connection successful!', {
+                description: 'Your Telegram account id is valid.',
+            });
+        } else {
+            form.errors.telegram_user_id = 'Invalid account id';
+            toast.error('Connection failed', {
+                description: data.message || 'Please check your credentials.',
+            });
+        }
+    } catch (error) {
+        console.log('errror', error);
+        toast.dismiss(loadingToast);
+        toast.error('Connection failed', {
+            description: 'An unexpected error occurred.',
+        });
+    } finally {
+        isTestingTelegram.value = false;
+    }
+}
+
 const clearTelegramKey = async () => {
     const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
     isClearingTelegramKey.value = true;
@@ -296,7 +346,7 @@ watch(() => page.props.auth.user, () => {
     provided.value.redmine = page.props.auth.user.redmine_api_provided;
     provided.value.slack = page.props.auth.user.slack_provided;
     provided.value.telegram = page.props.auth.user.telegram_provided;
-})
+});
 </script>
 
 <template>
@@ -477,6 +527,14 @@ watch(() => page.props.auth.user, () => {
                                     <div class="relative">
                                         <Input id="telegram_user_id" v-model="form.telegram_user_id"
                                             placeholder="123456789" class="font-mono text-sm" autocomplete="off" />
+                                        <div class="absolute right-1 top-1 flex gap-1">
+                                            <Button type="button" variant="ghost" size="sm" class="h-8 w-8 p-0"
+                                                @click="testTelegramConnection"
+                                                :disabled="isTestingTelegram || !form.telegram_user_id">
+                                                <Loader2 v-if="isTestingTelegram" class="h-4 w-4 animate-spin" />
+                                                <TestTube v-else class="h-4 w-4" />
+                                            </Button>
+                                        </div>
                                     </div>
                                 </template>
 

@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
@@ -50,9 +51,6 @@ class User extends Authenticatable
     protected $hidden = [
         'password',
         'remember_token',
-        'slack_user_id',
-        'telegram_user_id',
-        'redmine_api_key',
     ];
 
     /**
@@ -65,6 +63,7 @@ class User extends Authenticatable
         'slack_provided',
         'telegram_provided',
         'daily_hours',
+        'weekly_hours',
         'monthly_hours',
     ];
 
@@ -79,6 +78,24 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    /**
+     * Listen for the User created event and create a default notification setting.
+     *
+     * @return void
+     */
+    protected static function booted()
+    {
+        static::created(function (User $user) {
+            NotificationSetting::create([
+                'tenant_id' => $user->tenant_id,
+                'user_id' => $user->id,
+                'frequency' => 'daily',
+                'send_at' => '18:00',
+                'enabled' => true,
+            ]);
+        });
     }
 
     /**
@@ -119,6 +136,25 @@ class User extends Authenticatable
     protected function dailyHours(): Attribute
     {
         return Attribute::get(fn() => $this->timeEntries()->whereDate('spent_on', today($this->timezone))->sum('hours'));
+    }
+
+    /**
+     * The total hours the user has worked this week.
+     *
+     * @return \Illuminate\Database\Eloquent\Casts\Attribute
+     */
+    protected function weeklyHours(): Attribute
+    {
+        return Attribute::get(function () {
+            $tz = $this->timezone ?? config('app.timezone');
+
+            $startOfWeek = now($tz)->startOfWeek();
+            $endOfWeek = now($tz)->endOfWeek();
+
+            return $this->timeEntries()
+                ->whereBetween('spent_on', [$startOfWeek, $endOfWeek])
+                ->sum('hours');
+        });
     }
 
     /**
@@ -168,5 +204,15 @@ class User extends Authenticatable
     public function timeEntries(): HasMany
     {
         return $this->hasMany(TimeEntry::class);
+    }
+
+    /**
+     * Get the notification settings that the user belongs to.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function notificationSettings(): HasOne
+    {
+        return $this->hasOne(NotificationSetting::class);
     }
 }
