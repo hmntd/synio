@@ -42,12 +42,21 @@ export interface User {
     weekly_hours: number;
     monthly_hours: number;
     timezone: string;
+    canViewLogs: boolean;
     notification_settings: {
         frequency: string;
         send_at: string;
         enabled: boolean;
         day_of_week: string;
-    }
+    },
+    activity_logs: [{
+        id: number;
+        actor_id: number;
+        target_user_id: number | null;
+        action: string;
+        created_at: string;
+        updated_at: string;
+    }],
     created_at: string;
     updated_at: string;
 }

@@ -3,6 +3,7 @@
 use App\Http\Controllers\ActivityController;
 use App\Http\Controllers\Data\ProjectsController;
 use App\Http\Controllers\TimeEntryController;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -16,4 +17,20 @@ Route::domain('{tenant}.' . config('app.domain'))
         Route::get('/time-entries', fn() => Inertia::render('TimeEntries'));
 
         Route::get('/projects/{projectId}', [TimeEntryController::class, 'indexProject'])->name('projects.show');
+
+        Route::get('/activity-logs', function (Request $request) {
+            if ($request->user()->can('view-logs')) {
+                return Inertia::render('ActivityLogs');
+            }
+
+            return redirect()->route('dashboard');
+        });
+
+        Route::get('/users', function (Request $request) {
+            if ($request->user()->can('view-users')) {
+                return Inertia::render('Users');
+            }
+
+            return redirect()->route('dashboard');
+        });
     });

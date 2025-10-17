@@ -14,6 +14,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 use Laravel\Sanctum\HasApiTokens;
+use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable
 {
@@ -22,7 +23,8 @@ class User extends Authenticatable
         Notifiable,
         TwoFactorAuthenticatable,
         BelongsToTenant,
-        HasApiTokens;
+        HasApiTokens,
+        HasRoles;
 
     /**
      * The attributes that are mass assignable.
@@ -214,5 +216,15 @@ class User extends Authenticatable
     public function notificationSettings(): HasOne
     {
         return $this->hasOne(NotificationSetting::class);
+    }
+
+    /**
+     * Get the activity logs that the user belongs to.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function activityLogs(): HasMany
+    {
+        return $this->hasMany(ActivityLog::class, 'actor_id', 'id');
     }
 }

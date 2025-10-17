@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\ActivityLog;
 use App\Models\User;
 use Illuminate\Http\Client\Response as ClientResponse;
 use Illuminate\Http\JsonResponse;
@@ -58,6 +59,12 @@ class SlackService
         if (!$user->slack_user_id) {
             return false;
         }
+
+        ActivityLog::create([
+            'tenant_id' => $user->tenant_id,
+            'actor_id' => $user->id,
+            'action' => 'sent slack message',
+        ]);
 
         try {
             $response = $this->makeRequest($user, 'POST', '/chat.postMessage', [

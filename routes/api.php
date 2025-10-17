@@ -2,8 +2,10 @@
 
 use App\Http\Controllers\ActivityController;
 use App\Http\Controllers\Data\ProjectsController;
+use App\Http\Controllers\LogController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\TimeEntryController;
+use App\Http\Controllers\UserController;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -34,6 +36,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/timezones', fn() => response()->json([
         'timezones' => DateTimeZone::listIdentifiers(),
     ]));
+
+    Route::get('/activity-logs', [LogController::class, 'index'])->name('activity.index');
+
+    Route::get('/users', [UserController::class, 'index'])->name('users.index');
 });
 
 Route::post('/test-notification', function () {

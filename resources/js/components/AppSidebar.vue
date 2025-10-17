@@ -13,11 +13,13 @@ import {
 } from '@/components/ui/sidebar';
 import { home } from '@/routes';
 import { type NavItem } from '@/types';
-import { Link } from '@inertiajs/vue3';
-import { BookOpen, Clock, Folder, LayoutGrid } from 'lucide-vue-next';
+import { Link, usePage } from '@inertiajs/vue3';
+import { BookOpen, Clock, FileClock, Folder, LayoutGrid, UsersRound } from 'lucide-vue-next';
 import AppLogo from './AppLogo.vue';
+import { onMounted, ref } from 'vue';
 
-const mainNavItems: NavItem[] = [
+const page = usePage();
+const mainNavItems = ref<NavItem[]>([
     {
         title: 'Dashboard',
         href: '/dashboard',
@@ -32,8 +34,8 @@ const mainNavItems: NavItem[] = [
         title: 'Time Entries',
         href: '/time-entries',
         icon: Clock,
-    }
-];
+    },
+]);
 
 const footerNavItems: NavItem[] = [
     {
@@ -47,6 +49,22 @@ const footerNavItems: NavItem[] = [
         icon: BookOpen,
     },
 ];
+
+onMounted(() => {
+    if (page.props.auth.user.canViewLogs) {
+        mainNavItems.value.push({
+            title: 'Activity Logs',
+            href: '/activity-logs',
+            icon: FileClock,
+        });
+
+        mainNavItems.value.push({
+            title: 'Users',
+            href: '/users',
+            icon: UsersRound,
+        })
+    }
+})
 </script>
 
 <template>
@@ -56,7 +74,7 @@ const footerNavItems: NavItem[] = [
                 <SidebarMenuItem>
                     <SidebarMenuButton size="lg" as-child>
                         <Link :href="home()">
-                            <AppLogo />
+                        <AppLogo />
                         </Link>
                     </SidebarMenuButton>
                 </SidebarMenuItem>

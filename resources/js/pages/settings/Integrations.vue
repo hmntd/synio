@@ -538,10 +538,21 @@ watch(() => page.props.auth.user, () => {
                                     </div>
                                 </template>
 
-                                <p class="text-xs text-muted-foreground">
+                                <p class="text-xs text-muted-foreground leading-relaxed">
                                     To get your Chat ID: Start a chat with
-                                    <code class="rounded bg-muted px-1 py-0.5 text-xs">@userinfobot</code>
-                                    on Telegram and send any message. The bot will reply with your Chat ID.
+                                    <code class="rounded bg-muted px-1 py-0.5 text-xs">
+                                        <a href="https://t.me/userinfobot" target="_blank">@userinfobot</a>
+                                    </code>
+                                    on Telegram and send any message — it will reply with your Chat ID.<br />
+                                    <span class="block mt-1">
+                                        <strong>Important:</strong> To receive notifications from us, you must also
+                                        start a chat with
+                                        <code class="rounded bg-muted px-1 py-0.5 text-xs">
+                                            <a href="https://t.me/synio_bot" target="_blank">@synio_bot</a>
+                                        </code>
+                                        and click <em>“Start”</em>. Otherwise, the bot won’t be able to send you
+                                        messages.
+                                    </span>
                                 </p>
                                 <InputError :message="form.errors.telegram_user_id" />
                             </div>

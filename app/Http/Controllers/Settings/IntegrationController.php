@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Settings;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Settings\IntegrationUpdateRequest;
-use App\Models\User;
+use App\Models\ActivityLog;
 use App\Services\RedmineService;
 use App\Services\SlackService;
 use App\Services\TelegramService;
@@ -53,18 +53,38 @@ class IntegrationController extends Controller
         $updateData = [];
 
         if (isset($validated['redmine_base_url'])) {
+            ActivityLog::create([
+                'tenant_id' => $user->tenant_id,
+                'actor_id' => $user->id,
+                'action' => 'provided redmine base url',
+            ]);
             $updateData['redmine_base_url'] = $validated['redmine_base_url'] ?: null;
         }
 
         if (isset($validated['redmine_api_key'])) {
+            ActivityLog::create([
+                'tenant_id' => $user->tenant_id,
+                'actor_id' => $user->id,
+                'action' => 'provided redmine api key',
+            ]);
             $updateData['redmine_api_key'] = $validated['redmine_api_key'] ?: null;
         }
 
         if (isset($validated['slack_user_id'])) {
+            ActivityLog::create([
+                'tenant_id' => $user->tenant_id,
+                'actor_id' => $user->id,
+                'action' => 'provided slack user id',
+            ]);
             $updateData['slack_user_id'] = $validated['slack_user_id'] ?: null;
         }
 
         if (isset($validated['telegram_user_id'])) {
+            ActivityLog::create([
+                'tenant_id' => $user->tenant_id,
+                'actor_id' => $user->id,
+                'action' => 'provided telegram user id',
+            ]);
             $updateData['telegram_user_id'] = $validated['telegram_user_id'] ?: null;
         }
 
@@ -81,6 +101,12 @@ class IntegrationController extends Controller
         ]);
 
         $user = $request->user();
+
+        ActivityLog::create([
+            'tenant_id' => $user->tenant_id,
+            'actor_id' => $user->id,
+            'action' => 'tested redmine api key',
+        ]);
 
         // Temporarily set the provided values for testing
         $originalApiKey = $user->redmine_api_key;
@@ -120,6 +146,12 @@ class IntegrationController extends Controller
             'redmine_api_key' => null
         ]);
 
+        ActivityLog::create([
+            'tenant_id' => $request->user()->tenant_id,
+            'actor_id' => $request->user()->id,
+            'action' => 'cleared redmine api key',
+        ]);
+
         return response()->json([
             'success' => true,
             'message' => 'Redmine API key cleared successfully.',
@@ -134,6 +166,12 @@ class IntegrationController extends Controller
 
         $user = $request->user();
         $user->slack_user_id = $request->input('slack_user_id');
+
+        ActivityLog::create([
+            'tenant_id' => $user->tenant_id,
+            'actor_id' => $user->id,
+            'action' => 'tested slack api key',
+        ]);
 
         try {
             $isValid = $this->slackService->validateKey($user);
@@ -162,6 +200,12 @@ class IntegrationController extends Controller
             'slack_user_id' => null
         ]);
 
+        ActivityLog::create([
+            'tenant_id' => $request->user()->tenant_id,
+            'actor_id' => $request->user()->id,
+            'action' => 'cleared slack api key',
+        ]);
+
         return response()->json([
             'success' => true,
             'message' => 'Slack API key cleared successfully.',
@@ -176,6 +220,12 @@ class IntegrationController extends Controller
 
         $user = $request->user();
         $user->telegram_user_id = $request->input('telegram_user_id');
+
+        ActivityLog::create([
+            'tenant_id' => $user->tenant_id,
+            'actor_id' => $user->id,
+            'action' => 'tested telegram api key',
+        ]);
 
         try {
             $isValid = $this->telegramService->validateKey($user);
@@ -202,6 +252,12 @@ class IntegrationController extends Controller
     {
         $request->user()->update([
             'telegram_user_id' => null
+        ]);
+
+        ActivityLog::create([
+            'tenant_id' => $request->user()->tenant_id,
+            'actor_id' => $request->user()->id,
+            'action' => 'cleared telegram api key',
         ]);
 
         return response()->json([

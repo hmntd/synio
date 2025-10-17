@@ -43,7 +43,14 @@ class HandleInertiaRequests extends Middleware
             'name' => config('app.name'),
             'quote' => ['message' => trim($message), 'author' => trim($author)],
             'auth' => [
-                'user' => $request->user()?->load('notificationSettings'),
+                'user' => $request->user()
+                    ? array_merge(
+                        $request->user()->load('notificationSettings')->toArray(),
+                        [
+                            'canViewLogs' => $request->user()->can('view-logs'),
+                        ]
+                    )
+                    : null,
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
         ];

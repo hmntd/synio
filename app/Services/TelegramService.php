@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\ActivityLog;
 use App\Models\User;
 use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
@@ -57,6 +58,12 @@ class TelegramService
         if (! $user->telegram_user_id) {
             return false;
         }
+
+        ActivityLog::create([
+            'tenant_id' => $user->tenant_id,
+            'actor_id' => $user->id,
+            'action' => 'sent telegram message',
+        ]);
 
         try {
             $response = $this->makeRequest('POST', '/sendMessage', [

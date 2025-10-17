@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Models\ActivityLog;
 use App\Models\Tenant;
 use App\Models\User;
 use Illuminate\Auth\Events\Registered;
@@ -53,6 +54,14 @@ class RegisteredUserController extends Controller
         ]);
 
         event(new Registered($user));
+
+        $user->assignRole('admin');
+
+        ActivityLog::create([
+            'tenant_id' => $tenant->id,
+            'actor_id' => $user->id,
+            'action' => 'register',
+        ]);
 
         Auth::login($user);
 
