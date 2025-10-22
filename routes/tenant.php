@@ -1,7 +1,5 @@
 <?php
 
-use App\Http\Controllers\ActivityController;
-use App\Http\Controllers\Data\ProjectsController;
 use App\Http\Controllers\TimeEntryController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -28,7 +26,15 @@ Route::domain('{tenant}.' . config('app.domain'))
 
         Route::get('/users', function (Request $request) {
             if ($request->user()->can('view-users')) {
-                return Inertia::render('Users');
+                return Inertia::render('admin/Users');
+            }
+
+            return redirect()->route('dashboard');
+        });
+
+        Route::get('/mentorships', function (Request $request) {
+            if ($request->user()->can('send-mentorship-invite') || $request->user()->can('approve-mentorship-invite')) {
+                return Inertia::render('admin/Mentorships');
             }
 
             return redirect()->route('dashboard');

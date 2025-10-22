@@ -63,4 +63,14 @@ class Tenant extends Model
     {
         return $this->hasMany(RedmineActivity::class);
     }
+
+    /**
+     * Get the invitations that belong to this tenant.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function invitations(): HasMany
+    {
+        return $this->hasMany(Invitation::class);
+    }
 }

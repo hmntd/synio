@@ -43,6 +43,8 @@ export interface User {
     monthly_hours: number;
     timezone: string;
     canViewLogs: boolean;
+    canSendMentorshipRequests: boolean;
+    canApproveMentorshipRequests: boolean;
     notification_settings: {
         frequency: string;
         send_at: string;

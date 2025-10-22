@@ -14,7 +14,7 @@ import {
 import { home } from '@/routes';
 import { type NavItem } from '@/types';
 import { Link, usePage } from '@inertiajs/vue3';
-import { BookOpen, Clock, FileClock, Folder, LayoutGrid, UsersRound } from 'lucide-vue-next';
+import { BookOpen, BookOpenText, Clock, FileClock, Folder, LayoutGrid, UsersRound } from 'lucide-vue-next';
 import AppLogo from './AppLogo.vue';
 import { onMounted, ref } from 'vue';
 
@@ -51,6 +51,14 @@ const footerNavItems: NavItem[] = [
 ];
 
 onMounted(() => {
+    if (page.props.auth.user.canSendMentorshipRequests || page.props.auth.user.canApproveMentorshipRequests) {
+        mainNavItems.value.push({
+            title: 'Mentorships',
+            href: '/mentorships',
+            icon: BookOpenText,
+        })
+    }
+
     if (page.props.auth.user.canViewLogs) {
         mainNavItems.value.push({
             title: 'Activity Logs',
@@ -64,7 +72,7 @@ onMounted(() => {
             icon: UsersRound,
         })
     }
-})
+});
 </script>
 
 <template>

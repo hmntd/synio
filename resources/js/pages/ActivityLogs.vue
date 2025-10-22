@@ -68,7 +68,7 @@ onMounted(async () => {
                             <div v-for="log in user.activity_logs" :key="log.id"
                                 class="border-b last:border-b-0 py-1 text-sm">
                                 <p>{{ log.action }}</p>
-                                <p class="text-xs text-muted-foreground">{{ log.created_at }}</p>
+                                <p class="text-xs text-muted-foreground">{{ new Date(log.created_at).toLocaleString('en-GB') }}</p>
                             </div>
                         </template>
                         <p v-else class="text-sm text-muted-foreground">No activity logs yet.</p>

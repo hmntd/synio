@@ -2,8 +2,11 @@
 
 use App\Http\Controllers\ActivityController;
 use App\Http\Controllers\Data\ProjectsController;
+use App\Http\Controllers\InvitationController;
 use App\Http\Controllers\LogController;
+use App\Http\Controllers\MentorshipController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\RoleController;
 use App\Http\Controllers\TimeEntryController;
 use App\Http\Controllers\UserController;
 use App\Models\User;
@@ -22,7 +25,7 @@ Route::get('/create-token', function () {
     ], 200);
 })->middleware(['web', 'auth']);
 
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware(['auth:sanctum', 'tenant'])->group(function () {
     Route::get('/activities', [ActivityController::class, 'index'])->name('activity.index');
 
     Route::get('/time-entries', [TimeEntryController::class, 'index'])->name('time-entries.index'); // user time entries
@@ -40,9 +43,17 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/activity-logs', [LogController::class, 'index'])->name('activity.index');
 
     Route::get('/users', [UserController::class, 'index'])->name('users.index');
+    Route::put('/users/{user}', [UserController::class, 'update'])->name('users.update');
+    Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('users.destroy');
+
+    Route::get('/roles', [RoleController::class, 'index'])->name('roles.index');
+
+    Route::get('/mentees', [MentorshipController::class, 'index'])->name('mentees.index');
+
+    Route::apiResource('/users/invitations', InvitationController::class);
 });
 
-Route::post('/test-notification', function () {
-    $user = User::find(1);
-    dispatch(new \App\Jobs\SendUserNotification($user, $user->notificationSettings()->first()));
-});
+// Route::post('/test-notification', function () {
+//     $user = User::find(1);
+//     dispatch(new \App\Jobs\SendUserNotification($user, $user->notificationSettings()->first()));
+// });

@@ -24,7 +24,12 @@ class LogController extends Controller
             ], Response::HTTP_UNAUTHORIZED);
         }
 
-        $users = User::with(['roles', 'activityLogs'])->get();
+        $users = User::with([
+            'roles',
+            'activityLogs' => function ($query) {
+                $query->orderByDesc('created_at');
+            }
+        ])->get();
 
         $users = $users->map(function ($u) {
             return [

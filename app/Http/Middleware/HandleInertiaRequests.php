@@ -48,6 +48,8 @@ class HandleInertiaRequests extends Middleware
                         $request->user()->load('notificationSettings')->toArray(),
                         [
                             'canViewLogs' => $request->user()->can('view-logs'),
+                            'canSendMentorshipRequests' => $request->user()->can('send-mentorship-invite'),
+                            'canApproveMentorshipRequests' => $request->user()->can('approve-mentorship-invite'),
                         ]
                     )
                     : null,
